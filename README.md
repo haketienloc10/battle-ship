@@ -1,5 +1,6 @@
 # battle-ship
 cd battle-ship
+
 npm install
 
 # run
