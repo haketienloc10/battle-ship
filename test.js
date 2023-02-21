@@ -1,3 +1,57 @@
+var request = require("request");
+var config = require("./resource/config.json")
+
+var inviteOptions = { method: 'POST',
+  url: `http://${config.host}:${config.port}/invite`,
+  headers: 
+   { 'postman-token': '9d878fb9-fd51-91db-bbc3-31dacff56c13',
+     'cache-control': 'no-cache',
+     'x-token': '123456',
+     'x-session-id': '999999-4e90-409e-a644-d3b610099f79',
+     'content-type': 'application/json' },
+  body: 
+   { boardWidth: 20,
+     boardHeight: 8,
+     ships: 
+      [ { type: 'CV', quantity: 2 },
+        { type: 'BB', quantity: 2 },
+        { type: 'OR', quantity: 2 },
+        { type: 'CA', quantity: 2 },
+        { type: 'DD', quantity: 2 } ] },
+  json: true };
+
+exports.testInvite = () => {
+    const customPromise = new Promise((resolve, reject) => {
+        request(inviteOptions, function (error, response, body) {
+            if (error) throw new Error(error);
+            resolve(body);
+        });
+    });
+    return customPromise;
+}
+
+
+var placeShipsOptions = { method: 'POST',
+  url:  `http://${config.host}:${config.port}/place-ships`,
+  headers: 
+   { 'postman-token': 'cf9d16f6-39af-b60e-9f61-f34f8c866cbb',
+     'cache-control': 'no-cache',
+     'x-token': '123456',
+     'x-session-id': '999999-4e90-409e-a644-d3b610099f79',
+     'content-type': 'application/json' },
+  body: { player1: 'player1', player2: 'player2' },
+  json: true };
+
+exports.testPlaceShips = () => {
+    const customPromise = new Promise((resolve, reject) => {
+        request(placeShipsOptions, function (error, response, body) {
+            if (error) throw new Error(error);
+            resolve(body);
+        });
+    });
+    return customPromise;
+}
+
 exports.viewPlaceShip = (gameManager) => {
     let rowdata = "";
     let board = gameManager.board;

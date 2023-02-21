@@ -25,8 +25,14 @@ exports.gameOver = (req, res) => {
 }
 
 exports.view = (req, res) => {
-    let rs = test.viewPlaceShip(gameManager);
-    rs += "<br>";
-    rs += test.viewShoot(gameManager);
-    res.send(rs);
+    test.testInvite().then(data => {
+        // console.log(data);
+        test.testPlaceShips().then(data => {
+            // console.log(data);
+            let rs = test.viewPlaceShip(gameManager);
+            rs += "<br>";
+            rs += test.viewShoot(gameManager);
+            res.send(rs);
+        });
+    });
 }
