@@ -1,10 +1,11 @@
 const http = require('http');
 const app = require("./app");
+var config = require("./resource/config.json")
 
-const host = 'localhost';
-const port = 5001;
+const host = config.host;
+const port = config.port;
 
-app.set('port', 3000);
+app.set('port', port);
 const server = http.createServer(app);
 server.on('listening', () => {
     const serv = server.address();
