@@ -1,0 +1,12 @@
+{
+  "name": "battleships",
+  "version": "1.0.0",
+  "author": "@dtloc",
+  "description": "Battleship Game",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.20.1",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3"
+  }
+}
