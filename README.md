@@ -4,7 +4,7 @@ cd battle-ship
 npm install
 
 # run
-run index.js
+npm run [start or dev]
 
-# view 
+# test
 http://127.0.0.1:5001/view
