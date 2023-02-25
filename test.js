@@ -1,57 +1,6 @@
 var request = require("request");
 var config = require("./resource/config.json")
 
-var inviteOptions = { method: 'POST',
-  url: `http://${config.host}:${config.port}/invite`,
-  headers: 
-   { 'postman-token': '9d878fb9-fd51-91db-bbc3-31dacff56c13',
-     'cache-control': 'no-cache',
-     'x-token': '123456',
-     'x-session-id': '999999-4e90-409e-a644-d3b610099f79',
-     'content-type': 'application/json' },
-  body: 
-   { boardWidth: 20,
-     boardHeight: 8,
-     ships: 
-      [ { type: 'CV', quantity: 2 },
-        { type: 'BB', quantity: 2 },
-        { type: 'OR', quantity: 2 },
-        { type: 'CA', quantity: 2 },
-        { type: 'DD', quantity: 2 } ] },
-  json: true };
-
-exports.testInvite = () => {
-    const customPromise = new Promise((resolve, reject) => {
-        request(inviteOptions, function (error, response, body) {
-            if (error) throw new Error(error);
-            resolve(body);
-        });
-    });
-    return customPromise;
-}
-
-
-var placeShipsOptions = { method: 'POST',
-  url:  `http://${config.host}:${config.port}/place-ships`,
-  headers: 
-   { 'postman-token': 'cf9d16f6-39af-b60e-9f61-f34f8c866cbb',
-     'cache-control': 'no-cache',
-     'x-token': '123456',
-     'x-session-id': '999999-4e90-409e-a644-d3b610099f79',
-     'content-type': 'application/json' },
-  body: { player1: 'player1', player2: 'player2' },
-  json: true };
-
-exports.testPlaceShips = () => {
-    const customPromise = new Promise((resolve, reject) => {
-        request(placeShipsOptions, function (error, response, body) {
-            if (error) throw new Error(error);
-            resolve(body);
-        });
-    });
-    return customPromise;
-}
-
 exports.viewPlaceShip = (gameManager) => {
     let rowdata = "";
     let board = gameManager.board;
@@ -106,6 +55,7 @@ exports.viewShoot = (gameManager) => {
     let rowdata = "";
     let board = gameManager.board;
     let shotFired = gameManager.shotFired;
+    let rgb_constant = 0;
     for (let i = -1; i < board.boardHeight; i++) {
         rowdata += "<tr>";
         for (let j = -1; j < board.boardWidth; j++) {
@@ -116,13 +66,54 @@ exports.viewShoot = (gameManager) => {
                 }
                 continue; 
             }
-            let fired = shotFired.placeShip.find(ship => ship.x == j && ship.y == i);
-            if (fired == null) {
-                rowdata += '<td bgcolor="red" style="width: 50px; height: 50px; text-align: center;">';
-                rowdata += 'X';
+            let fired = shotFired.placeShoot.find(ship => ship.x == j && ship.y == i);
+            if (shotFired.shoots && shotFired.shoots.x == j && shotFired.shoots.y == i) {
+                rowdata += '<td id="'+j+"_"+i+'" bgcolor="red" style="width: 50px; height: 50px; text-align: center;">';
+            } else if (fired.isShoot) {
+                rowdata += '<td id="'+j+"_"+i+'" bgcolor="black" style="color: white; width: 50px; height: 50px; text-align: center;">';
             } else {
-                rowdata += '<td bgcolor="#cfe2f3" style="width: 50px; height: 50px; text-align: center;">';
-                rowdata += '  ';
+                if (fired.priority < 0) {
+                    rgb_constant = 255;
+                } else {
+                    rgb_constant = 255-(fired.priority*3);
+                }
+                if (rgb_constant < 0) rgb_constant = 255;
+                rgb = `rgb(${rgb_constant},${rgb_constant},${rgb_constant})`;
+                rowdata += '<td id="'+j+"_"+i+'" style="width: 50px; height: 50px; text-align: center; background-color:'+rgb+'">';
+            }
+            rowdata += fired.priority;
+            rowdata += "</td>"
+        }
+        rowdata += "</tr>";
+    }
+    return "<table>"+rowdata+"</table>";
+}
+
+exports.viewHitMap = (gameManager) => {
+    let rowdata = "";
+    let board = gameManager.board;
+    let shoot = gameManager.shotFired;
+    let hitsMap = shoot.hitsMap;
+    let hits = shoot.hits;
+    if (hitsMap.length == 0 && hits.length == 0) return "";
+    for (let i = 0; i < board.boardHeight; i++) {
+        rowdata += "<tr>";
+        for (let j = -1; j < board.boardWidth; j++) {
+            if (j < 0) {
+                rowdata += '<td style="width: 50px; height: 50px; text-align: center;">';
+                continue; 
+            }
+            let hit = hitsMap.find(h => h.x == j && h.y == i);
+            if (hit) {
+                if (hit.isShoot) {
+                    rowdata += '<td bgcolor="red" style="width: 50px; height: 50px; text-align: center;">';
+                } else {
+                    rowdata += '<td bgcolor="#cfe2f3" style="width: 50px; height: 50px; text-align: center;">';
+                }
+                rowdata += hit.hitPriority + "|" + hit.priorityBonus + "|" + hit.priority;
+            } else {
+                rowdata += '<td style="width: 50px; height: 50px; text-align: center;">';
+                rowdata += 0;
             }
             rowdata += "</td>"
         }
