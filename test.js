@@ -1,6 +1,3 @@
-var request = require("request");
-var config = require("./resource/config.json")
-
 exports.viewPlaceShip = (gameManager) => {
     let rowdata = "";
     let board = gameManager.board;
@@ -56,6 +53,7 @@ exports.viewShoot = (gameManager) => {
     let board = gameManager.board;
     let shotFired = gameManager.shotFired;
     let rgb_constant = 0;
+    let totalShip = board.ships.length;
     for (let i = -1; i < board.boardHeight; i++) {
         rowdata += "<tr>";
         for (let j = -1; j < board.boardWidth; j++) {
