@@ -17,7 +17,8 @@ exports.shoot = (req, res) => {
 }
 
 exports.notify = (req, res) => {
-    res.send("NOT IMPLEMENT");
+    gameManager.shotFired.notify(req.body);
+    res.json({"success": true});
 }
 
 exports.gameOver = (req, res) => {
@@ -25,14 +26,9 @@ exports.gameOver = (req, res) => {
 }
 
 exports.view = (req, res) => {
-    test.testInvite().then(data => {
-        // console.log(data);
-        test.testPlaceShips().then(data => {
-            // console.log(data);
-            let rs = test.viewPlaceShip(gameManager);
-            rs += "<br>";
-            rs += test.viewShoot(gameManager);
-            res.send(rs);
-        });
-    });
+    let rs = test.viewPlaceShip(gameManager);
+    rs += "<br>";
+    rs += test.viewShoot(gameManager);
+    rs += test.viewHitMap(gameManager);
+    res.send(rs);
 }
