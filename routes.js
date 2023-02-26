@@ -4,6 +4,7 @@ const router = express.Router();
 // Require controller
 const gameController = require("./gameController");
 
+router.post("/*", gameController.getSession);
 router.post("/invite", gameController.invite);
 router.post("/place-ships", gameController.placeShips);
 router.post("/shoot", gameController.shoot);

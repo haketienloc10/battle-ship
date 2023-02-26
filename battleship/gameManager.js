@@ -1,14 +1,13 @@
-var _board = require("./board");
-var _shoot = require("./shoot");
+const Board = require("./board");
+const Shoot = require("./shoot");
 
-var sessionId = null;
-var token = null;
-var board = null;
-
-exports.start = (key, data) => {
-    this.sessionId = key['x-session-id'];
-    this.token = key['x-token'];
-    this.board = _board.init(data);
-    this.shotFired = _shoot.init(this.board);
+class GameManager {
+    constructor(key, data) {
+        this.sessionId = key['x-session-id'];
+        this.token = key['x-token'];
+        this.board = new Board(data);
+        this.shotFired = new Shoot(this.board);
+    }
 }
 
+module.exports = GameManager
