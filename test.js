@@ -65,9 +65,7 @@ exports.viewShoot = (gameManager) => {
                 continue; 
             }
             let fired = shotFired.placeShoot.find(ship => ship.x == j && ship.y == i);
-            if (shotFired.shoots && shotFired.shoots.x == j && shotFired.shoots.y == i) {
-                rowdata += '<td id="'+j+"_"+i+'" bgcolor="red" style="width: 50px; height: 50px; text-align: center;">';
-            } else if (fired.isShoot) {
+            if (fired.isShoot) {
                 rowdata += '<td id="'+j+"_"+i+'" bgcolor="black" style="color: white; width: 50px; height: 50px; text-align: center;">';
             } else {
                 if (fired.priority < 0) {

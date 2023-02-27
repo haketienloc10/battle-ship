@@ -47,10 +47,11 @@ class Shoot {
             this.updatePriority(coordinate[0], coordinate[1]);
             this.placeShoot.find(p => p.x == coordinate[0] && p.y == coordinate[1]).isShoot = true;
             if (this.hits.length > 0) {
+                let lastHit = this.hits[0];
                 this.hitsMap = [];
-                this.generateHitsMap();
+                this.generateHitsMap([lastHit]);
             }
-        } 
+        }
         if (shots.status == "HIT") {
             this.hits.push({x: coordinate[0], y: coordinate[1]});
             let sunkShips = data.sunkShips;
@@ -67,13 +68,13 @@ class Shoot {
                 this.placeShoot = this.getPlaceShoot(true);
                 this.hitsMap = [];
                 if (this.hits.length > 0) {
-                    this.generateHitsMap();
+                    this.generateHitsMap(this.hits);
                 }
             } else {
                 if (this.hitsMap.length == 0) {
-                    this.generateHitsMap();
+                    this.generateHitsMap(this.hits);
                 } else {
-                    let lastHit = this.hits[this.hits.length-1];
+                    let lastHit = this.hits[0];
                     let obj = this.getPriority(lastHit.x, lastHit.y).arr;
                     this.updateHitsMap(obj);
                 }
@@ -94,17 +95,27 @@ class Shoot {
     }
 
     priority(a, b) {
-        if (a.isShoot && a.isShoot)
+        if (a.isShoot && b.isShoot)
             return 0;
         if (a.isShoot)
             return 1;   
         if (b.isShoot)
-            return -1;  
-        if (a.priority < b.priority)
-            return 1;
-        if (a.priority > b.priority)
             return -1;
-        return 0;
+
+        let priority = 0;
+        if (a.priority < b.priority)
+            priority = 1;
+        else if (a.priority > b.priority)
+            priority = -1;
+        
+        let priority_1 = (a.hitPriority || 0) + (a.priorityBonus || 0);
+        let priority_2 = (b.hitPriority || 0) + (b.priorityBonus || 0);
+
+        if (priority_1 < priority_2)
+            priority = 1;
+        else if (priority_1 > priority_2)
+            priority = -1;
+        return priority;
     }
 
     getPriority(x, y) {
@@ -117,7 +128,7 @@ class Shoot {
         let n = 1;
         let idx = 0;
         for (let i = 0; i < n; i++) {
-            if (this.shipsRequest["DD"] && i < this.shipsRequest["DD"].cell) {
+            if (this.shipsRequest["DD"] && i < this.shipsRequest["DD"].cell && this.shipsRequest["DD"].quantity > 0) {
                 idx = this.shipsRequest["DD"].cell;
                 quantity = this.shipsRequest["DD"].quantity;
                 pattern = {x: [0,1], y: [0,0]};
@@ -134,7 +145,7 @@ class Shoot {
                 arrY = [py,py+1];
                 this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
             }
-            if (this.shipsRequest["CA"] && i < this.shipsRequest["CA"].cell) {
+            if (this.shipsRequest["CA"] && i < this.shipsRequest["CA"].cell && this.shipsRequest["CA"].quantity > 0) {
                 idx = this.shipsRequest["CA"].cell;
                 quantity = this.shipsRequest["CA"].quantity;
                 pattern = {x: [0,1,2], y: [0,0,0]};
@@ -151,7 +162,7 @@ class Shoot {
                 arrY = [py,py+1,py+2];
                 this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
             }
-            if (this.shipsRequest["BB"] && i < this.shipsRequest["BB"].cell) {
+            if (this.shipsRequest["BB"] && i < this.shipsRequest["BB"].cell && this.shipsRequest["BB"].quantity > 0) {
                 idx = this.shipsRequest["BB"].cell;
                 quantity = this.shipsRequest["BB"].quantity;
                 pattern = {x: [0,1,2,3], y: [0,0,0,0]};
@@ -168,7 +179,7 @@ class Shoot {
                 arrY = [py,py+1,py+2,py+3];
                 this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
             }
-            if (this.shipsRequest["OR"] && i < this.shipsRequest["OR"].cell) {
+            if (this.shipsRequest["OR"] && i < this.shipsRequest["OR"].cell && this.shipsRequest["OR"].quantity > 0) {
                 idx = this.shipsRequest["OR"].cell;
                 quantity = this.shipsRequest["OR"].quantity;
                 pattern = {x: [0,1,0,1], y: [0,0,1,1]};
@@ -178,7 +189,7 @@ class Shoot {
                 arrY = [py,py,py+1,py+1];
                 this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
             }
-            if (this.shipsRequest["CV"] && i < this.shipsRequest["CV"].cell) {
+            if (this.shipsRequest["CV"] && i < this.shipsRequest["CV"].cell && this.shipsRequest["CV"].quantity > 0) {
                 idx = this.shipsRequest["CV"].cell;
                 quantity = this.shipsRequest["CV"].quantity;
                 // pattern_1
@@ -224,9 +235,9 @@ class Shoot {
         }
     }
 
-    generateHitsMap() {
-        for (let i = 0; i < this.hits.length; i++) {
-            let hit = this.hits[i];
+    generateHitsMap(hits) {
+        for (let i = 0; i < hits.length; i++) {
+            let hit = hits[i];
             let obj = this.getPriority(hit.x, hit.y).arr;
             this.updateHitsMap(obj);
         }
@@ -241,18 +252,30 @@ class Shoot {
             let countBonus = 0;
             for (let j = 0; j < arr.x.length; j++) {
                 place = this.hitsMap.find(item => item.x == arr.x[j] && item.y == arr.y[j]);
-                if (place == undefined || !place) {
-                    place = {x: arr.x[j], y: arr.y[j], priority:0, hitPriority:0, priorityBonus:0};
+                if (place == undefined) {
+                    place = {x: arr.x[j], y: arr.y[j], priority:0, hitPriority:0, priorityBonus:0, isShoot:false};
                     this.hitsMap.push(place);
                 }
-                tmpBonus.push({...place});
                 let isBonus = this.hits.findIndex(hit => hit.x == arr.x[j] && hit.y == arr.y[j]);
                 isBonus >= 0 && countBonus++;
                 place.hitPriority += arr.quantity;
                 place.isShoot = this.hits.findIndex(h => h.x == place.x && h.y == place.y) >= 0 
                                 || this.placeShoot.findIndex(h => h.x == place.x && h.y == place.y && h.isShoot) >= 0;
+                tmpBonus.push({...place});
             }
-            tmpBonus.map(p => p.priorityBonus = countBonus == this.hits.length ? tmpBonus.length + countBonus : 0);
+            let point = 0;
+            if (countBonus == this.hits.length) {
+                if (countBonus == arr.x.length) {
+                    point = 0;
+                } else if (countBonus == arr.x.length - 1) {
+                    point = countBonus * 10 * arr.x.length;
+                } else {
+                    point = countBonus;
+                }
+            } else {
+                point = countBonus;
+            }
+            tmpBonus.map(p => p.priorityBonus = point);
             priorityBonus = priorityBonus.concat(tmpBonus);
         }
         for (let i=0; i < this.hitsMap.length; i++) {
