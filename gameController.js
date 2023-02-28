@@ -4,7 +4,14 @@ var test = require("./test");
 var sessions = new Map();
 var gameManager;
 
+var PLAYER_ID = "Tau_Chim";
+
 exports.getSession = (req, res, next) => {
+    if (req.body.playerId && PLAYER_ID != req.body.playerId) {
+        res.end();
+        return;
+    }
+    console.log(req.url + ": " + JSON.stringify(req.body));
     gameManager = sessions.get(req.headers['x-session-id']);
     if (!gameManager && req.url != '/invite') {
         res.json({"success": false, "message": "session-id invalid"});
@@ -17,6 +24,7 @@ exports.getSession = (req, res, next) => {
 };
 
 exports.invite = (req, res) => {
+    console.log(`http://localhost:5001/view?sessionId=${req.headers['x-session-id']}`);
     gameManager = new GameManager(req.headers, req.body);
     res.json({"success": true});
 }
