@@ -23,61 +23,74 @@ class Shoot {
     }
 
     shoot(data) {
-        if (this.hits.length == 0) {
-            this.placeShoot.sort(this.priority);
-            let priorityList = this.placeShoot.filter(i => i.priority == this.placeShoot[0].priority);
-            let idx = Math.floor(Math.random() * priorityList.length);
-            let shoot = this.placeShoot[idx];
-            this.shoots = shoot;
-            return [shoot.x, shoot.y];
+        let maxShots = 1;
+        if (this.hits.length > 0) maxShots = data.maxShots;
+        let arrShoot = []
+        for (let n = 0; n < maxShots; n++) {
+            if (this.hits.length == 0) {
+                this.placeShoot.sort(this.priority);
+                let priorityList = this.placeShoot.filter(i => i.priority == this.placeShoot[0].priority);
+                let idx = Math.floor(Math.random() * priorityList.length);
+                let shoot = this.placeShoot[idx];
+                this.shoots = shoot;
+                arrShoot.push([shoot.x, shoot.y]);
+            } else {
+                this.hitsMap.sort(this.priority);
+                let priorityList = this.hitsMap.filter(i => i.priority == this.hitsMap[0].priority && i.isShoot==false);
+                let idx = Math.floor(Math.random() * priorityList.length);
+                let shoot = this.hitsMap[idx];
+                shoot.isShoot = true;
+                this.shoots = shoot;
+                arrShoot.push([shoot.x, shoot.y]);
+            }
         }
-        this.hitsMap.sort(this.priority);
-        let priorityList = this.hitsMap.filter(i => i.priority == this.hitsMap[0].priority && i.isShoot==false);
-        let idx = Math.floor(Math.random() * priorityList.length);
-        let shoot = this.hitsMap[idx];
-        shoot.isShoot = true;
-        this.shoots = shoot;
-        return [shoot.x, shoot.y];
+        return arrShoot;
     }
 
     notify(data) {
-        let shots = data.shots[0];
-        let coordinate = shots.coordinate;
-        if (shots.status == "MISS") {
-            this.updatePriority(coordinate[0], coordinate[1]);
-            this.placeShoot.find(p => p.x == coordinate[0] && p.y == coordinate[1]).isShoot = true;
-            if (this.hits.length > 0) {
-                let lastHit = this.hits[0];
-                this.hitsMap = [];
-                this.generateHitsMap([lastHit]);
+        let arrSunkShips = [];
+        for (let n = 0; n < data.shots.length; n++) {
+            let shots = data.shots[n];
+            let coordinate = shots.coordinate;
+            if (shots.status == "MISS") {
+                this.updatePriority(coordinate[0], coordinate[1]);
+                this.placeShoot.find(p => p.x == coordinate[0] && p.y == coordinate[1]).isShoot = true;
+                if (this.hits.length > 0) {
+                    let lastHit = this.hits[0];
+                    this.hitsMap = [];
+                    this.generateHitsMap([lastHit]);
+                }
+            }
+            if (shots.status == "HIT") {
+                this.hits.push({x: coordinate[0], y: coordinate[1]});
+                let sunkShips = data.sunkShips;
+                if (sunkShips != null && sunkShips.length > 0 && sunkShips[n]) {
+                    arrSunkShips.push(sunkShips[n]);
+                } else {
+                    if (this.hitsMap.length == 0) {
+                        this.generateHitsMap(this.hits);
+                    } else {
+                        let lastHit = this.hits[0];
+                        let obj = this.getPriority(lastHit.x, lastHit.y).arr;
+                        this.updateHitsMap(obj);
+                    }
+                }
             }
         }
-        if (shots.status == "HIT") {
-            this.hits.push({x: coordinate[0], y: coordinate[1]});
-            let sunkShips = data.sunkShips;
-            if (sunkShips != null && sunkShips.length > 0) {
-                let coordinates = sunkShips[0].coordinates;
-                for (let i = 0; i < coordinates.length; i++) {
-                    let hit = this.hits.findIndex(h => h.x == coordinates[i][0] && h.y == coordinates[i][1]);
-                    let place = this.placeShoot.find(p => p.x == this.hits[hit].x && p.y == this.hits[hit].y);
-                    place.isShoot = true;
-                    hit >= 0 && this.hits.splice(hit,1);
-                }
-                let ships = this.shipsRequest[sunkShips[0].type]
-                ships.quantity = ships.quantity - 1;
-                this.placeShoot = this.getPlaceShoot(true);
-                this.hitsMap = [];
-                if (this.hits.length > 0) {
-                    this.generateHitsMap(this.hits);
-                }
-            } else {
-                if (this.hitsMap.length == 0) {
-                    this.generateHitsMap(this.hits);
-                } else {
-                    let lastHit = this.hits[0];
-                    let obj = this.getPriority(lastHit.x, lastHit.y).arr;
-                    this.updateHitsMap(obj);
-                }
+        for (let j = 0; j < arrSunkShips.length; j++) {
+            let coordinates = arrSunkShips[j].coordinates;
+            for (let i = 0; i < coordinates.length; i++) {
+                let hit = this.hits.findIndex(h => h.x == coordinates[i][0] && h.y == coordinates[i][1]);
+                let place = this.placeShoot.find(p => p.x == this.hits[hit].x && p.y == this.hits[hit].y);
+                place.isShoot = true;
+                hit >= 0 && this.hits.splice(hit,1);
+            }
+            let ships = this.shipsRequest[arrSunkShips[j].type]
+            ships.quantity = ships.quantity - 1;
+            this.placeShoot = this.getPlaceShoot(true);
+            this.hitsMap = [];
+            if (this.hits.length > 0) {
+                this.generateHitsMap(this.hits);
             }
         }
     }
