@@ -2,7 +2,6 @@ var GameManager = require("./battleship/gameManager");
 var test = require("./test");
 
 var sessions = new Map();
-var gameManager;
 
 var PLAYER_ID = "Tau_Chim";
 
@@ -12,47 +11,48 @@ exports.getSession = (req, res, next) => {
         return;
     }
     console.log(req.url + ": " + JSON.stringify(req.body));
-    gameManager = sessions.get(req.headers['x-session-id']);
-    if (!gameManager && req.url != '/invite') {
+    if (!sessions.get(req.headers['x-session-id']) && req.url != '/invite') {
         res.json({"success": false, "message": "session-id invalid"});
         console.log('End requests: session-id invalid');
         return;
     } else {
+        req.gameManager = sessions.get(req.headers['x-session-id']);
         next();
     }
-    gameManager && sessions.set(gameManager.sessionId, gameManager);
 };
 
 exports.invite = (req, res) => {
     console.log(`http://localhost:5001/view?sessionId=${req.headers['x-session-id']}`);
-    gameManager = new GameManager(req.headers, req.body);
+    let gameManager = new GameManager(req.headers, req.body);
+    sessions.set(gameManager.sessionId, gameManager);
     res.json({"success": true});
 }
 
 exports.placeShips = (req, res) => {
-    gameManager.board.placeShips();
-    res.json({"ships": gameManager.board.ships});
+    req.gameManager.board.placeShips();
+    res.json({"ships": req.gameManager.board.ships});
 }
 
 exports.shoot = (req, res) => {
-    let shoots = gameManager.shotFired.shoot(req.body);
+    let shoots = req.gameManager.shotFired.shoot(req.body);
     res.json({"coordinates": shoots});
 }
 
 exports.notify = (req, res) => {
-    gameManager.shotFired.notify(req.body);
+    req.gameManager.shotFired.notify(req.body);
     res.json({"success": true});
 }
 
 exports.gameOver = (req, res) => {
-    sessions.delete(gameManager.sessionId);
-    gameManager = null;
+    sessions.delete(req.headers['x-session-id']);
     res.json({ "success": true });
 }
 
 exports.view = (req, res) => {
-    if (req.query && req.query.sessionId) {
-        gameManager = sessions.get(req.query.sessionId);
+    let gameManager = sessions.get(req.query.sessionId);
+    if (gameManager == undefined) {
+        res.send("Ố ồ Bị lỗi rồi!");
+        return;
     }
     let rs = test.viewPlaceShip(gameManager);
     rs += "<br>";
