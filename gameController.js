@@ -51,8 +51,7 @@ exports.gameOver = (req, res) => {
 exports.view = (req, res) => {
     let gameManager = sessions.get(req.query.sessionId);
     if (gameManager == undefined) {
-        res.send("Ố ồ Bị lỗi rồi!");
-        return;
+        gameManager = sessions.values().next().value;
     }
     let rs = test.viewPlaceShip(gameManager);
     rs += "<br>";
