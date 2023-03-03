@@ -23,27 +23,43 @@ class Shoot {
     }
 
     shoot(data) {
-        let maxShots = 1;
-        if (this.hits.length > 0) maxShots = data.maxShots;
+        let maxShots = this.hits.length == 0 ? data.maxShots : 1;
         let arrShoot = []
         for (let n = 0; n < maxShots; n++) {
             if (this.hits.length == 0) {
                 this.placeShoot.sort(this.priority);
-                let priorityList = this.placeShoot.filter(i => i.priority == this.placeShoot[0].priority);
+                let priorityList = this.placeShoot.filter(i => i.priority >= this.placeShoot[maxShots-1].priority && (arrShoot.length < 1 || arrShoot.findIndex(a => a[0]==i.x && a[1]==i.y) < 0));
                 let idx = Math.floor(Math.random() * priorityList.length);
-                let shoot = this.placeShoot[idx];
+                let shoot = priorityList[idx];
+                console.log("MISS: shoots_tmp: " + JSON.stringify(this.shoots));
+                console.log("shoots_fire: " + JSON.stringify(shoot));
                 this.shoots = shoot;
+                if (shoot == undefined || (arrShoot.length > 0 && arrShoot.findIndex(a => a[0]==shoot.x && a[1]==shoot.y) >= 0)) {
+                    console.log("hits: " + JSON.stringify(this.hits));
+                    console.log("hitsMap: " + JSON.stringify(this.hitsMap));
+                    console.log("priorityList: " + JSON.stringify(priorityList));
+                }
                 arrShoot.push([shoot.x, shoot.y]);
             } else {
                 this.hitsMap.sort(this.priority);
-                let priorityList = this.hitsMap.filter(i => i.priority == this.hitsMap[0].priority && i.isShoot==false);
+                let priorityList = this.hitsMap.filter(i => 
+                        i.priorityBonus + i.hitPriority >= this.hitsMap[maxShots-1].priorityBonus + this.hitsMap[maxShots-1].hitPriority 
+                        && i.isShoot==false);
                 let idx = Math.floor(Math.random() * priorityList.length);
-                let shoot = this.hitsMap[idx];
-                shoot.isShoot = true;
+                let shoot = priorityList[idx];
+                console.log("HIT: shoots_tmp: " + JSON.stringify(this.shoots));
+                console.log("shoots_fire: " + JSON.stringify(shoot));
                 this.shoots = shoot;
+                if (shoot == undefined) {
+                    console.log("hits: " + JSON.stringify(this.hits));
+                    console.log("hitsMap: " + JSON.stringify(this.hitsMap));
+                    console.log("priorityList: " + JSON.stringify(priorityList));
+                }
+                shoot.isShoot = true;
                 arrShoot.push([shoot.x, shoot.y]);
             }
         }
+        console.log("arrShoot:" + JSON.stringify(arrShoot));
         return arrShoot;
     }
 
