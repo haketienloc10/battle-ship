@@ -13,8 +13,8 @@ exports.viewPlaceShip = (gameManager) => {
             }
             let ship = board.placeShip.find(ship => ship.x == j && ship.y == i);
             let shipSelected = board.ships.findIndex(sShip => sShip.type == ship.type && sShip.coordinates.find(c => c[0] == j && c[1] == i));
-            if (ship.isUsed) {
-                let bgcolor = "red";
+            if (ship.isUsed && shipSelected >= 0) {
+                let bgcolor = "#cfe2f3";
                 switch (ship.type) {
                     case "DD":
                         bgcolor = "#6aa84f";
