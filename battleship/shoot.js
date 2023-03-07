@@ -51,6 +51,7 @@ class Shoot {
                     console.log("hitsMap: " + JSON.stringify(this.hitsMap));
                     console.log("priorityList: " + JSON.stringify(priorityList));
                 }
+                shoot.priority = 0;
                 arrShoot.push([shoot.x, shoot.y]);
             } else {
                 this.hitsMap.sort(this.priority);
@@ -70,6 +71,9 @@ class Shoot {
                 shoot.isShoot = true;
                 arrShoot.push([shoot.x, shoot.y]);
             }
+        }
+        if (maxShots > 1) {
+            this.placeShoot = this.getPlaceShoot(true);
         }
         console.log("arrShoot:" + JSON.stringify(arrShoot));
         return arrShoot;
@@ -126,15 +130,54 @@ class Shoot {
     getPlaceShoot(isUpdate=false) {
         let totalShip = Object.values(this.shipsRequest).reduce((x,y)=> x+y.quantity,0);
         let placeShoot = [];
+        let priorityTmp = [];
         for (let i = 0; i < this.height; i++) {
             for (let j = 0; j < this.width; j++) {
                 let obj = this.getPriority(j, i);
                 let isShoot = isUpdate ? this.placeShoot.find(item => item.x == j && item.y == i).isShoot : false;
                 let priority = obj.priority;
-                if (totalShip > 1) {
-                    priority = i%2 == j%2 ? obj.priority - totalShip : obj.priority;
+                if (totalShip > 3 && !isShoot) {
+                    if (j%2==i%2) {
+                        priorityTmp.push({x:j,y:i,priority:priority});
+                        // if (j <= 1 || j >= this.width - 2 || i <= 1 || i >= this.height - 2) {
+                        //     priority = 160;
+                        // } else {
+                        //     priority = 160 - obj.priority;
+                        // }
+
+                        // priority = 160 - obj.priority;
+
+                        priority = 160 + obj.priority;
+                    }
                 }
                 placeShoot.push({x: j, y: i, priority: priority, isShoot: isShoot});
+            }
+        }
+        return this.checkPriotyAble(placeShoot, priorityTmp);;
+    }
+
+    checkPriotyAble(placeShoot, priorityTmp) {
+        for(let i = 0; i < priorityTmp.length; i++) {
+            let tmp = priorityTmp[i];
+            let place = placeShoot.find(item => item.x == tmp.x-1 && item.y == tmp.y && item.isShoot == true);
+            if (place) {
+                placeShoot.find(item => item.x == tmp.x && item.y == tmp.y).priority = tmp.priority;
+                continue;
+            }
+            place = placeShoot.find(item => item.x == tmp.x+1 && item.y == tmp.y && item.isShoot == true);
+            if (place) {
+                placeShoot.find(item => item.x == tmp.x && item.y == tmp.y).priority = tmp.priority;
+                continue;
+            }
+            place = placeShoot.find(item => item.x == tmp.x && item.y == tmp.y-1 && item.isShoot == true);
+            if (place) {
+                placeShoot.find(item => item.x == tmp.x && item.y == tmp.y).priority = tmp.priority;
+                continue;
+            }
+            place = placeShoot.find(item => item.x == tmp.x && item.y == tmp.y+1 && item.isShoot == true);
+            if (place) {
+                placeShoot.find(item => item.x == tmp.x && item.y == tmp.y).priority = tmp.priority;
+                continue;
             }
         }
         return placeShoot;
