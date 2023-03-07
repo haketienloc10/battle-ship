@@ -53,8 +53,9 @@ exports.view = (req, res) => {
     if (gameManager == undefined) {
         gameManager = sessions.values().next().value;
     }
-    let rs = test.viewPlaceShip(gameManager);
-    rs += "<br>";
+    let rs = '<meta http-equiv="refresh" content="1">'
+    // rs += test.viewPlaceShip(gameManager);
+    // rs += "<br>";
     rs += test.viewShoot(gameManager);
     rs += test.viewHitMap(gameManager);
     res.send(rs);
