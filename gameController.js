@@ -48,12 +48,21 @@ exports.gameOver = (req, res) => {
     res.json({ "success": true });
 }
 
+exports.hihihaha = (req, res) => {
+    let gameManager = sessions.get(req.query.sessionId);
+    if (gameManager) {
+        gameManager.shotFired.hihihaha.add(req.query.data);
+    }
+    res.json({ "success": true });
+}
+
 exports.view = (req, res) => {
     let gameManager = sessions.get(req.query.sessionId);
     if (gameManager == undefined) {
         gameManager = sessions.values().next().value;
     }
-    let rs = '<meta http-equiv="refresh" content="1">'
+    let rs = '<meta http-equiv="refresh" content="300">'
+    rs += '<script>function hihihaha(data){ const xhttp = new XMLHttpRequest(); xhttp.open("GET", "http://localhost:5001/hihihaha?sessionId=999999-4e90-409e-a644-d3b610099f79&data="+data.id); xhttp.send(); }</script>'
     rs += test.viewPlaceShip(gameManager);
     rs += "<br>";
     rs += test.viewShoot(gameManager);

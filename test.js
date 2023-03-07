@@ -75,7 +75,7 @@ exports.viewShoot = (gameManager) => {
                 }
                 if (rgb_constant < 0) rgb_constant = 255;
                 rgb = `rgb(${rgb_constant},${rgb_constant},${rgb_constant})`;
-                rowdata += '<td id="'+j+"_"+i+'" style="width: 50px; height: 50px; text-align: center; background-color:'+rgb+'">';
+                rowdata += '<td id="'+j+"_"+i+'" style="width: 50px; height: 50px; text-align: center; background-color:'+rgb+'" onclick="hihihaha(this)">';
             }
             rowdata += fired.priority;
             rowdata += "</td>"

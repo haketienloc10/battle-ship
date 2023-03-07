@@ -9,6 +9,8 @@ class Shoot {
         this.shoots = null;
         this.hits = [];
         this.hitsMap = [];
+        // dev
+        this.hihihaha = new Set();
     }
 
     getShipsRequest(ships) {
@@ -23,6 +25,14 @@ class Shoot {
     }
 
     shoot(data) {
+        if (this.hits.length == 0 && this.hihihaha.size > 0) {
+            console.log(JSON.stringify(this.hihihaha));
+            const setIter = this.hihihaha.entries();
+            let getOne = setIter.next().value[0];
+            let parse = getOne.split("_");
+            this.hihihaha.delete(getOne);
+            return [[+parse[0], +parse[1]]];
+        }
         let maxShots = this.hits.length == 0 ? data.maxShots : 1;
         let arrShoot = []
         for (let n = 0; n < maxShots; n++) {
