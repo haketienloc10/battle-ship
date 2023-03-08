@@ -1,4 +1,5 @@
 const shipPatterns = require('../resource/shipPatterns');
+const templateShoot = require('../resource/templateShoot');
 
 class Shoot {
     constructor (board) {
@@ -9,8 +10,7 @@ class Shoot {
         this.shoots = null;
         this.hits = [];
         this.hitsMap = [];
-        // dev
-        this.hihihaha = new Set();
+        this.templateShoot = new Set();
     }
 
     getShipsRequest(ships) {
@@ -25,13 +25,15 @@ class Shoot {
     }
 
     shoot(data) {
-        if (this.hits.length == 0 && this.hihihaha.size > 0) {
-            console.log(JSON.stringify(this.hihihaha));
-            const setIter = this.hihihaha.entries();
+        if (this.hits.length == 0 && this.templateShoot.size > 0) {
+            const setIter = this.templateShoot.entries();
             let getOne = setIter.next().value[0];
             let parse = getOne.split("_");
-            this.hihihaha.delete(getOne);
-            return [[+parse[0], +parse[1]]];
+            this.templateShoot.delete(getOne);
+            let x = +parse[0];
+            let y = +parse[1];
+            if (this.placeShoot.findIndex(i=>i.x==x&&i.y==y&&!i.isShoot) >= 0) return [[x, y]];
+            return this.shoot(data);
         }
         let maxShots = this.hits.length == 0 ? data.maxShots : 1;
         let arrShoot = []
@@ -49,10 +51,20 @@ class Shoot {
                         }
                     }
                     priorityList.sort(this.priority);
+                    priorityList = priorityList.filter(i => arrShoot.findIndex(a=>a[0]==i.x&&a[1]==i.y)<0);
                 }
-                priorityList = priorityList.filter(i => i.priority >= priorityList[maxShots-1].priority);
-                let idx = Math.floor(Math.random() * priorityList.length);
-                let shoot = priorityList[idx];
+                priorityList = priorityList.filter(i => i.priority == priorityList[0].priority);
+                let shoot = priorityList[0];
+                if (priorityList.length > 1) {
+                    let sumPriority = this.sumPriority(shoot);
+                    for (let i = 1; i < priorityList.length; i++) {
+                        let tmpSum = this.sumPriority(priorityList[i]);
+                        if (tmpSum > sumPriority) shoot = priorityList[i];
+                    }
+                    console.log("select: " + JSON.stringify(shoot) + " in " + priorityList.length + " item");
+                }
+                // let idx = Math.floor(Math.random() * priorityList.length);
+                // let shoot = priorityList[idx];
                 console.log("MISS: shoots_tmp: " + JSON.stringify(this.shoots));
                 console.log("shoots_fire: " + JSON.stringify(shoot));
                 this.shoots = shoot;
@@ -61,7 +73,6 @@ class Shoot {
                     console.log("hitsMap: " + JSON.stringify(this.hitsMap));
                     console.log("priorityList: " + JSON.stringify(priorityList));
                 }
-                shoot.priority = 0;
                 arrShoot.push([shoot.x, shoot.y]);
             } else {
                 this.hitsMap.sort(this.priority);
@@ -87,6 +98,18 @@ class Shoot {
         }
         console.log("arrShoot:" + JSON.stringify(arrShoot));
         return arrShoot;
+    }
+
+    sumPriority(shoot) {
+        let sumPriority = 0;
+        let obj = this.getPriority(shoot.x, shoot.y).arr;
+        for (let i = 0; i < obj.length; i++) {
+            let arr = obj[i];
+            for (let j = 0; j < arr.x.length; j++) {
+                sumPriority += arr.quantity;
+            }
+        }
+        return sumPriority;
     }
 
     notify(data) {
@@ -146,20 +169,6 @@ class Shoot {
                 let obj = this.getPriority(j, i);
                 let isShoot = isUpdate ? this.placeShoot.find(item => item.x == j && item.y == i).isShoot : false;
                 let priority = obj.priority;
-                if (totalShip > 3 && !isShoot) {
-                    if (j%2==i%2) {
-                        priorityTmp.push({x:j,y:i,priority:priority});
-                        // if (j <= 1 || j >= this.width - 2 || i <= 1 || i >= this.height - 2) {
-                        //     priority = 160;
-                        // } else {
-                        //     priority = 160 - obj.priority;
-                        // }
-
-                        // priority = 160 - obj.priority;
-
-                        priority = 160 + obj.priority;
-                    }
-                }
                 placeShoot.push({x: j, y: i, priority: priority, isShoot: isShoot});
             }
         }
@@ -369,7 +378,7 @@ class Shoot {
                 } else if (countBonus == arr.x.length - 1) {
                     point = countBonus * 10 * arr.x.length;
                 } else {
-                    point = countBonus;
+                    point = countBonus*countBonus;
                 }
             } else {
                 point = countBonus;

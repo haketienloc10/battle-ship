@@ -49,10 +49,10 @@ exports.gameOver = (req, res) => {
 }
 
 exports.hihihaha = (req, res) => {
-    let gameManager = sessions.get(req.query.sessionId);
-    if (gameManager) {
-        gameManager.shotFired.hihihaha.add(req.query.data);
-    }
+    // let gameManager = sessions.get(req.query.sessionId);
+    // if (gameManager) {
+    //     gameManager.shotFired.hihihaha.add(req.query.data);
+    // }
     res.json({ "success": true });
 }
 
