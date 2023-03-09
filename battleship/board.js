@@ -137,6 +137,26 @@ class Board {
             neighbor.type =  '_';
             neighbor.isUsed = true;
         }
+        neighbor = this.placeShip.find(ship => ship.x == x - 1 && ship.y == y - 1);
+        if (neighbor && neighbor.isUsed == false) {
+            neighbor.type =  '_';
+            neighbor.isUsed = true;
+        }
+        neighbor = this.placeShip.find(ship => ship.x == x - 1 && ship.y == y + 1);
+        if (neighbor && neighbor.isUsed == false) {
+            neighbor.type =  '_';
+            neighbor.isUsed = true;
+        }
+        neighbor = this.placeShip.find(ship => ship.x == x + 1 && ship.y == y - 1);
+        if (neighbor && neighbor.isUsed == false) {
+            neighbor.type =  '_';
+            neighbor.isUsed = true;
+        }
+        neighbor = this.placeShip.find(ship => ship.x == x + 1 && ship.y == y + 1);
+        if (neighbor && neighbor.isUsed == false) {
+            neighbor.type =  '_';
+            neighbor.isUsed = true;
+        }
     }
 }
 

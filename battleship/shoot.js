@@ -47,7 +47,7 @@ class Shoot {
                         let arr = obj[i];
                         for (let j = 0; j < arr.x.length; j++) {
                             let place = priorityList.find(item => item.x == arr.x[j] && item.y == arr.y[j]);
-                            place.priority -= arr.quantity;
+                            place.priority -= 1;
                         }
                     }
                     priorityList.sort(this.priority);
@@ -59,7 +59,10 @@ class Shoot {
                     let sumPriority = this.sumPriority(shoot);
                     for (let i = 1; i < priorityList.length; i++) {
                         let tmpSum = this.sumPriority(priorityList[i]);
-                        if (tmpSum > sumPriority) shoot = priorityList[i];
+                        if (tmpSum > sumPriority) {
+                            shoot = priorityList[i];
+                            sumPriority = tmpSum;
+                        }
                     }
                     console.log("select: " + JSON.stringify(shoot) + " in " + priorityList.length + " item");
                 }
@@ -106,7 +109,7 @@ class Shoot {
         for (let i = 0; i < obj.length; i++) {
             let arr = obj[i];
             for (let j = 0; j < arr.x.length; j++) {
-                sumPriority += arr.quantity;
+                sumPriority += 1;
             }
         }
         return sumPriority;
@@ -148,6 +151,7 @@ class Shoot {
                 let hit = this.hits.findIndex(h => h.x == coordinates[i][0] && h.y == coordinates[i][1]);
                 let place = this.placeShoot.find(p => p.x == this.hits[hit].x && p.y == this.hits[hit].y);
                 place.isShoot = true;
+                place.isHit = true;
                 hit >= 0 && this.hits.splice(hit,1);
             }
             let ships = this.shipsRequest[arrSunkShips[j].type]
@@ -161,45 +165,59 @@ class Shoot {
     }
 
     getPlaceShoot(isUpdate=false) {
-        let totalShip = Object.values(this.shipsRequest).reduce((x,y)=> x+y.quantity,0);
         let placeShoot = [];
-        let priorityTmp = [];
         for (let i = 0; i < this.height; i++) {
             for (let j = 0; j < this.width; j++) {
                 let obj = this.getPriority(j, i);
                 let isShoot = isUpdate ? this.placeShoot.find(item => item.x == j && item.y == i).isShoot : false;
+                let isHit = isUpdate ? this.placeShoot.find(item => item.x == j && item.y == i).isHit : false;
                 let priority = obj.priority;
-                placeShoot.push({x: j, y: i, priority: priority, isShoot: isShoot});
-            }
-        }
-        return this.checkPriotyAble(placeShoot, priorityTmp);;
-    }
-
-    checkPriotyAble(placeShoot, priorityTmp) {
-        for(let i = 0; i < priorityTmp.length; i++) {
-            let tmp = priorityTmp[i];
-            let place = placeShoot.find(item => item.x == tmp.x-1 && item.y == tmp.y && item.isShoot == true);
-            if (place) {
-                placeShoot.find(item => item.x == tmp.x && item.y == tmp.y).priority = tmp.priority;
-                continue;
-            }
-            place = placeShoot.find(item => item.x == tmp.x+1 && item.y == tmp.y && item.isShoot == true);
-            if (place) {
-                placeShoot.find(item => item.x == tmp.x && item.y == tmp.y).priority = tmp.priority;
-                continue;
-            }
-            place = placeShoot.find(item => item.x == tmp.x && item.y == tmp.y-1 && item.isShoot == true);
-            if (place) {
-                placeShoot.find(item => item.x == tmp.x && item.y == tmp.y).priority = tmp.priority;
-                continue;
-            }
-            place = placeShoot.find(item => item.x == tmp.x && item.y == tmp.y+1 && item.isShoot == true);
-            if (place) {
-                placeShoot.find(item => item.x == tmp.x && item.y == tmp.y).priority = tmp.priority;
-                continue;
+                placeShoot.push({x: j, y: i, priority: priority, isShoot: isShoot, isHit: isHit});
             }
         }
         return placeShoot;
+        // return this.updatePlaceWithHit(placeShoot);
+    }
+
+    updatePlaceWithHit(placeShoot) {
+        for (let i = 0; i < placeShoot.length; i++) {
+            let place = placeShoot[i];
+            if (this.checkPriotyAble(placeShoot, place) < 8) place.priority = 0;
+        }
+        return placeShoot;
+    }
+
+    checkPriotyAble(placeShoot, shoot) {
+        if (shoot.isShoot) return 0;
+        let x = shoot.x;
+        let y = shoot.y;
+        return this.checkStraightLine(placeShoot,x,y) + this.checkDiagonalLine(placeShoot,x,y);
+    }
+
+    checkStraightLine(placeShoot, x, y) {
+        let rank = 4;
+        let place = placeShoot.find(item => item.x == x-1 && item.y == y && item.isHit == true);
+        if (place) rank--;
+        place = placeShoot.find(item => item.x == x+1 && item.y == y && item.isHit == true);
+        if (place) rank--;
+        place = placeShoot.find(item => item.x == x && item.y == y-1 && item.isHit == true);
+        if (place) rank--;
+        place = placeShoot.find(item => item.x == x && item.y == y+1 && item.isHit == true);
+        if (place) rank--;
+        return rank;
+    }
+
+    checkDiagonalLine(placeShoot, x, y) {
+        let rank = 4;
+        let place = placeShoot.find(item => item.x == x-1 && item.y == y-1 && item.isHit == true);
+        if (place) rank--;
+        place = placeShoot.find(item => item.x == x-1 && item.y == y+1 && item.isHit == true);
+        if (place) rank--;
+        place = placeShoot.find(item => item.x == x+1 && item.y == y-1 && item.isHit == true);
+        if (place) rank--;
+        place = placeShoot.find(item => item.x == x+1 && item.y == y+1 && item.isHit == true);
+        if (place) rank--;
+        return rank;
     }
 
     priority(a, b) {
@@ -244,14 +262,14 @@ class Shoot {
                 py = y-pattern.y[i];
                 arrX = [px,px+1];
                 arrY = [py,py];
-                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
+                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=1);
     
                 pattern = {x: [0,0], y: [0,1]};
                 px = x-pattern.x[i];
                 py = y-pattern.y[i];
                 arrX = [px,px];
                 arrY = [py,py+1];
-                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
+                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=1);
             }
             if (this.shipsRequest["CA"] && i < this.shipsRequest["CA"].cell && this.shipsRequest["CA"].quantity > 0) {
                 idx = this.shipsRequest["CA"].cell;
@@ -261,14 +279,14 @@ class Shoot {
                 py = y-pattern.y[i];
                 arrX = [px,px+1,px+2];
                 arrY = [py,py,py];
-                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
+                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=1);
     
                 pattern = {x: [0,0,0], y: [0,1,2]};
                 px = x-pattern.x[i];
                 py = y-pattern.y[i];
                 arrX = [px,px,px];
                 arrY = [py,py+1,py+2];
-                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
+                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=1);
             }
             if (this.shipsRequest["BB"] && i < this.shipsRequest["BB"].cell && this.shipsRequest["BB"].quantity > 0) {
                 idx = this.shipsRequest["BB"].cell;
@@ -278,14 +296,14 @@ class Shoot {
                 py = y-pattern.y[i];
                 arrX = [px,px+1,px+2,px+3];
                 arrY = [py,py,py,py];
-                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
+                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=1);
     
                 pattern = {x: [0,0,0,0], y: [0,1,2,3]};
                 px = x-pattern.x[i];
                 py = y-pattern.y[i];
                 arrX = [px,px,px,px];
                 arrY = [py,py+1,py+2,py+3];
-                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
+                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=1);
             }
             if (this.shipsRequest["OR"] && i < this.shipsRequest["OR"].cell && this.shipsRequest["OR"].quantity > 0) {
                 idx = this.shipsRequest["OR"].cell;
@@ -295,7 +313,7 @@ class Shoot {
                 py = y-pattern.y[i];
                 arrX = [px,px+1,px,px+1];
                 arrY = [py,py,py+1,py+1];
-                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity*2);
+                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=1);
             }
             if (this.shipsRequest["CV"] && i < this.shipsRequest["CV"].cell && this.shipsRequest["CV"].quantity > 0) {
                 idx = this.shipsRequest["CV"].cell;
@@ -306,14 +324,14 @@ class Shoot {
                 py = y-pattern.y[i];
                 arrX = [px,px+1,px+1,px+2,px+3];
                 arrY = [py,py,py-1,py,py];
-                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
+                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=1);
                 // pattern_2
                 pattern = {x: [0,0,-1,0,0], y: [0,1,1,2,3]};
                 px = x-pattern.x[i];
                 py = y-pattern.y[i];
                 arrX = [px,px,px-1,px,px];
                 arrY = [py,py+1,py+1,py+2,py+3];
-                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=quantity);
+                this.isTake(arrX,arrY) && arr.push({x: arrX, y: arrY, quantity: quantity}) && (priority+=1);
             }
             if (n < idx) n = idx;
         }
@@ -325,6 +343,8 @@ class Shoot {
             for (let i = 0; i < arrX.length; i++) {
                 let place = this.placeShoot.findIndex(p => p.x == arrX[i] && p.y == arrY[i] && p.isShoot);
                 if (place >= 0) return false;
+                if (this.checkStraightLine(this.placeShoot, arrX[i], arrY[i]) < 4) return false;
+                if (this.checkDiagonalLine(this.placeShoot, arrX[i], arrY[i]) < 4) return false;
             }
         }
         let isTakeX = arrX.findIndex(index => index < 0 || index >= this.width) < 0;
@@ -338,7 +358,7 @@ class Shoot {
             let arr = obj[i];
             for (let j = 0; j < arr.x.length; j++) {
                 let place = this.placeShoot.find(item => item.x == arr.x[j] && item.y == arr.y[j]);
-                place.priority -= arr.quantity;
+                place.priority -= 1;
             }
         }
     }
@@ -366,7 +386,9 @@ class Shoot {
                 }
                 let isBonus = this.hits.findIndex(hit => hit.x == arr.x[j] && hit.y == arr.y[j]);
                 isBonus >= 0 && countBonus++;
-                place.hitPriority += arr.quantity;
+                // TODO
+                // place.hitPriority += this.checkPriotyAble(place) >= 8 ? 1 : 0;
+                place.hitPriority += 1;
                 place.isShoot = this.hits.findIndex(h => h.x == place.x && h.y == place.y) >= 0 
                                 || this.placeShoot.findIndex(h => h.x == place.x && h.y == place.y && h.isShoot) >= 0;
                 tmpBonus.push({...place});
@@ -378,7 +400,7 @@ class Shoot {
                 } else if (countBonus == arr.x.length - 1) {
                     point = countBonus * 10 * arr.x.length;
                 } else {
-                    point = countBonus*countBonus;
+                    point = countBonus*arr.x.length;
                 }
             } else {
                 point = countBonus;

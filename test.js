@@ -65,8 +65,10 @@ exports.viewShoot = (gameManager) => {
                 continue; 
             }
             let fired = shotFired.placeShoot.find(ship => ship.x == j && ship.y == i);
-            if (fired.isShoot) {
-                rowdata += '<td id="'+j+"_"+i+'" bgcolor="black" style="color: white; width: 50px; height: 50px; text-align: center;">';
+            if (fired.isHit) {
+                rowdata += '<td id="'+j+"_"+i+'" bgcolor="#4d3399" style="color: white; width: 50px; height: 50px; text-align: center;">';
+            } else if (fired.isShoot) {
+                rowdata += '<td id="'+j+"_"+i+'" bgcolor="#993333" style="color: white; width: 50px; height: 50px; text-align: center;">';
             } else {
                 if (fired.priority < 0) {
                     rgb_constant = 255;
