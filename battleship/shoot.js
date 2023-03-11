@@ -53,15 +53,18 @@ class Shoot {
                     priorityList.sort(this.priority);
                     priorityList = priorityList.filter(i => arrShoot.findIndex(a=>a[0]==i.x&&a[1]==i.y)<0);
                 }
-                priorityList = priorityList.filter(i => i.priority == priorityList[0].priority);
                 let shoot = priorityList[0];
-                if (priorityList.length > 1) {
-                    let sumPriority = this.sumPriority(shoot);
-                    for (let i = 1; i < priorityList.length; i++) {
-                        let tmpSum = this.sumPriority(priorityList[i]);
-                        if (tmpSum > sumPriority) {
-                            shoot = priorityList[i];
-                            sumPriority = tmpSum;
+                priorityList = priorityList.filter(i => i.x%2 != i.y%2);
+                if (priorityList.length > 0) {
+                    priorityList = priorityList.filter(i => i.priority == priorityList[0].priority);
+                    shoot = priorityList[0];
+                    let rank = this.sumPriority(shoot)
+                    for (let i = 0; i < priorityList.length; i++) {
+                        let shootTmp = priorityList[i];
+                        let rankTmp = this.sumPriority(shootTmp);
+                        if (rankTmp < rank) {
+                            shoot = shootTmp;
+                            rank = rankTmp;
                         }
                     }
                     console.log("select: " + JSON.stringify(shoot) + " in " + priorityList.length + " item");
@@ -104,14 +107,17 @@ class Shoot {
     }
 
     sumPriority(shoot) {
-        let sumPriority = 0;
-        let obj = this.getPriority(shoot.x, shoot.y).arr;
-        for (let i = 0; i < obj.length; i++) {
-            let arr = obj[i];
-            for (let j = 0; j < arr.x.length; j++) {
-                sumPriority += 1;
-            }
-        }
+        let x = shoot.x;
+        let y = shoot.y;
+        let sumPriority = shoot.priority;
+        let place = this.placeShoot.find(item => item.x == x-1 && item.y == y && item.isShoot == false);
+        if (place) sumPriority+=place.priority;
+        place = this.placeShoot.find(item => item.x == x+1 && item.y == y && item.isShoot == false);
+        if (place) sumPriority+=place.priority;
+        place = this.placeShoot.find(item => item.x == x && item.y == y-1 && item.isShoot == false);
+        if (place) sumPriority+=place.priority;
+        place = this.placeShoot.find(item => item.x == x && item.y == y+1 && item.isShoot == false);
+        if (place) sumPriority+=place.priority;
         return sumPriority;
     }
 

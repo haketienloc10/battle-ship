@@ -1,4 +1,5 @@
 const shipPatterns = require('../resource/shipPatterns');
+const templateShip = require('../resource/templateShip');
 
 class Board {
     constructor(data) {
@@ -22,6 +23,7 @@ class Board {
                 this.placeShip.push({x: j, y: i, priorityPlace: priorityPlace, isUsed: false});
             }
         }
+        this.shipsRequest.sort(function (s1, s2) { if (s1.type == 'DD') return -1; if (s2.type == 'DD') return 1})
     }
 
     priorityPlace(x, y) {
@@ -41,17 +43,18 @@ class Board {
                     if (!randomMod) {
                         switch (ship.type) {
                             case 'DD':
-                                arrTmp = arrTmp.filter(i => i.priorityPlace <= '1');
+                                // arrTmp = arrTmp.filter(i => i.priorityPlace <= '1');
+                                arrTmp = arrTmp.filter(i => templateShip.DD.findIndex(t=>t.x==i.x&&t.y==i.y) >= 0);
                                 break;
                             case 'OR':
                                 arrTmp = arrTmp.filter(i => i.priorityPlace == '1' || i.priorityPlace == '2');
                                 break;
                             case 'CA':
-                                arrTmp = arrTmp.filter(i => i.priorityPlace <= '2');
+                                arrTmp = arrTmp.filter(i => i.priorityPlace <= '1');
                                 break;
                             case 'BB':
                             case 'CV':
-                                arrTmp = arrTmp.filter(i => i.priorityPlace > '0');
+                                arrTmp = arrTmp.filter(i => i.priorityPlace > '1');
                                 break;
                             default:
                                 break;
@@ -63,6 +66,7 @@ class Board {
                         this.placeShip = [];
                         this.ships = [];
                         this.createBoard();
+                        count>=5 && console.log("random");
                         this.placeShips(count>=5, ++count);
                         return;
                     } else {
@@ -137,26 +141,26 @@ class Board {
             neighbor.type =  '_';
             neighbor.isUsed = true;
         }
-        neighbor = this.placeShip.find(ship => ship.x == x - 1 && ship.y == y - 1);
-        if (neighbor && neighbor.isUsed == false) {
-            neighbor.type =  '_';
-            neighbor.isUsed = true;
-        }
-        neighbor = this.placeShip.find(ship => ship.x == x - 1 && ship.y == y + 1);
-        if (neighbor && neighbor.isUsed == false) {
-            neighbor.type =  '_';
-            neighbor.isUsed = true;
-        }
-        neighbor = this.placeShip.find(ship => ship.x == x + 1 && ship.y == y - 1);
-        if (neighbor && neighbor.isUsed == false) {
-            neighbor.type =  '_';
-            neighbor.isUsed = true;
-        }
-        neighbor = this.placeShip.find(ship => ship.x == x + 1 && ship.y == y + 1);
-        if (neighbor && neighbor.isUsed == false) {
-            neighbor.type =  '_';
-            neighbor.isUsed = true;
-        }
+        // neighbor = this.placeShip.find(ship => ship.x == x - 1 && ship.y == y - 1);
+        // if (neighbor && neighbor.isUsed == false) {
+        //     neighbor.type =  '_';
+        //     neighbor.isUsed = true;
+        // }
+        // neighbor = this.placeShip.find(ship => ship.x == x - 1 && ship.y == y + 1);
+        // if (neighbor && neighbor.isUsed == false) {
+        //     neighbor.type =  '_';
+        //     neighbor.isUsed = true;
+        // }
+        // neighbor = this.placeShip.find(ship => ship.x == x + 1 && ship.y == y - 1);
+        // if (neighbor && neighbor.isUsed == false) {
+        //     neighbor.type =  '_';
+        //     neighbor.isUsed = true;
+        // }
+        // neighbor = this.placeShip.find(ship => ship.x == x + 1 && ship.y == y + 1);
+        // if (neighbor && neighbor.isUsed == false) {
+        //     neighbor.type =  '_';
+        //     neighbor.isUsed = true;
+        // }
     }
 }
 
