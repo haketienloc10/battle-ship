@@ -10,6 +10,7 @@ class Shoot {
         this.shoots = null;
         this.hits = [];
         this.hitsMap = [];
+        this.totalShip = Object.values(this.shipsRequest).reduce((x,y)=>x+y.quantity,0);
         this.templateShoot = new Set();
     }
 
@@ -181,14 +182,35 @@ class Shoot {
                 placeShoot.push({x: j, y: i, priority: priority, isShoot: isShoot, isHit: isHit});
             }
         }
-        return placeShoot;
-        // return this.updatePlaceWithHit(placeShoot);
+        // return placeShoot;
+        return this.updatePlaceWithHit(placeShoot);
     }
 
     updatePlaceWithHit(placeShoot) {
-        for (let i = 0; i < placeShoot.length; i++) {
-            let place = placeShoot[i];
-            if (this.checkPriotyAble(placeShoot, place) < 8) place.priority = 0;
+        let placeHit = placeShoot.filter(i=>i.isHit == true);
+        if (placeHit.length > 0 && this.totalShip <= 5) {
+            for (let i = 0; i < placeHit.length; i++) {
+                let hit = placeHit[i];
+                let x = hit.x;
+                let y = hit.y;
+                let place = placeShoot.find(item => item.x == x-2 && item.y == y);
+                if (place && place.priority>0) place.priority-=0.5;
+                place = placeShoot.find(item => item.x == x+2 && item.y == y);
+                if (place && place.priority>0) place.priority-=0.5;
+                place = placeShoot.find(item => item.x == x && item.y == y-2);
+                if (place && place.priority>0) place.priority-=0.5;
+                place = placeShoot.find(item => item.x == x && item.y == y+2);
+                if (place && place.priority>0) place.priority-=0.5;
+
+                place = placeShoot.find(item => item.x == x-1 && item.y == y-1);
+                if (place && place.priority>0) place.priority-=0.5;
+                place = placeShoot.find(item => item.x == x-1 && item.y == y+1);
+                if (place && place.priority>0) place.priority-=0.5;
+                place = placeShoot.find(item => item.x == x+1 && item.y == y-1);
+                if (place && place.priority>0) place.priority-=0.5;
+                place = placeShoot.find(item => item.x == x+1 && item.y == y+1);
+                if (place && place.priority>0) place.priority-=0.5;
+            }
         }
         return placeShoot;
     }
@@ -350,7 +372,7 @@ class Shoot {
                 let place = this.placeShoot.findIndex(p => p.x == arrX[i] && p.y == arrY[i] && p.isShoot);
                 if (place >= 0) return false;
                 if (this.checkStraightLine(this.placeShoot, arrX[i], arrY[i]) < 4) return false;
-                if (this.checkDiagonalLine(this.placeShoot, arrX[i], arrY[i]) < 4) return false;
+                // if (this.checkDiagonalLine(this.placeShoot, arrX[i], arrY[i]) < 4) return false;
             }
         }
         let isTakeX = arrX.findIndex(index => index < 0 || index >= this.width) < 0;

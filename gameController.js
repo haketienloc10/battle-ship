@@ -61,7 +61,7 @@ exports.view = (req, res) => {
     if (gameManager == undefined) {
         gameManager = sessions.values().next().value;
     }
-    let rs = '<meta http-equiv="refresh" content="300">'
+    let rs = '<meta http-equiv="refresh" content="1">'
     rs += '<script>function hihihaha(data){ const xhttp = new XMLHttpRequest(); xhttp.open("GET", "http://localhost:5001/hihihaha?sessionId=999999-4e90-409e-a644-d3b610099f79&data="+data.id); xhttp.send(); }</script>'
     rs += test.viewPlaceShip(gameManager);
     rs += "<br>";
